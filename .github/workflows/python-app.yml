@@ -1,0 +1,34 @@
+# .github/workflows/update_cloudflare_ips.yml
+name: Update Cloudflare IP Ranges
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # هر روز ساعت 00:00 UTC اجرا می‌شود
+  workflow_dispatch:      # اجازه اجرای دستی workflow از GitHub
+
+jobs:
+  update-ips:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run IP update script
+        run: python cloudflare_ip_update.py
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add cloudflare_ip_ranges.json
+          git commit -m "Update Cloudflare IP ranges [automated]" || echo "No changes to commit"
+          git push
